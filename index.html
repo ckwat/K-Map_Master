@@ -1,0 +1,966 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- SEO Meta Tags -->
+    <title>K-Map Master: Interactive Karnaugh Map & Logic Simplification Game</title>
+    <meta name="description"
+        content="Master logic simplification and Boolean algebra with K-Map Master, an interactive game featuring Karnaugh Maps, Quine-McCluskey solver hints, and custom practice drills (2, 3, 4 variables)." />
+    <meta name="keywords"
+        content="K-Map, Karnaugh Map, Logic Simplification, Boolean Algebra, Digital Logic, Quine-McCluskey, K-Map Game, Digital Electronics, Truth Table" />
+    <meta name="author" content="Kelvin WAT" />
+    <link rel="canonical" href="[YOUR_CANONICAL_URL_HERE]" />
+    <link rel="icon" type="image/png" href="./icon_k-map.png">
+    <link rel="apple-touch-icon" href="./icon_k-map.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="./icon_k-map.png">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Inter:wght@300;400;600;800&display=swap');
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0f172a;
+            color: #e2e8f0;
+        }
+
+        .mono {
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #1e293b;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #475569;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #64748b;
+        }
+
+        .cell {
+            transition: all 0.2s ease;
+        }
+
+        .cell:hover {
+            filter: brightness(1.2);
+        }
+
+        .kmap-grid {
+            display: grid;
+            gap: 2px;
+            background-color: #334155;
+            border: 2px solid #475569;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .group-overlay {
+            pointer-events: none;
+            position: absolute;
+            border-radius: 8px;
+            opacity: 0.5;
+            transition: all 0.3s ease;
+        }
+
+        /* Animation for success */
+        @keyframes success-pop {
+            0% {
+                transform: scale(1);
+            }
+
+            50% {
+                transform: scale(1.1);
+            }
+
+            100% {
+                transform: scale(1);
+            }
+        }
+
+        .animate-success {
+            animation: success-pop 0.3s ease-in-out;
+        }
+    </style>
+</head>
+
+<body class="h-screen flex flex-col overflow-hidden">
+
+    <!-- Header -->
+    <header class="bg-slate-800 border-b border-slate-700 p-4 flex justify-between items-center shadow-md z-10">
+        <div class="flex items-center gap-3">
+            <div class="bg-indigo-500 text-white p-2 rounded-lg">
+                <i class="fas fa-microchip text-xl"></i>
+            </div>
+            <div>
+                <h1 class="font-bold text-xl tracking-tight text-white">K-Map Master</h1>
+                <p class="text-xs text-slate-400" id="stage-indicator">Main Menu</p>
+            </div>
+        </div>
+        <div class="flex gap-2">
+            <button onclick="app.showSettings()" class="p-2 text-slate-400 hover:text-white transition"><i
+                    class="fas fa-cog"></i></button>
+        </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <main class="flex-1 relative overflow-hidden flex justify-center items-center bg-slate-900">
+
+        <!-- View: Main Menu -->
+        <div id="view-menu" class="text-center max-w-md w-full p-6 space-y-8 animate-fade-in">
+            <div class="space-y-2">
+                <h2
+                    class="text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-cyan-400">
+                    Logic Simplified</h2>
+                <p class="text-slate-400">Master Boolean Algebra optimization through interactive visualization.</p>
+            </div>
+
+            <div class="grid gap-4">
+                <button onclick="app.startCampaign()"
+                    class="group relative w-full py-4 px-6 bg-indigo-600 hover:bg-indigo-500 rounded-xl font-bold text-white shadow-lg shadow-indigo-900/50 transition-all hover:-translate-y-1">
+                    <div class="flex items-center justify-between">
+                        <span><i class="fas fa-play mr-2"></i> Campaign Mode</span>
+                        <span
+                            class="text-xs bg-indigo-800 px-2 py-1 rounded text-indigo-200 group-hover:bg-indigo-700">Stage
+                            1-3</span>
+                    </div>
+                </button>
+
+                <button onclick="app.startCustomSetup()"
+                    class="w-full py-4 px-6 bg-slate-800 hover:bg-slate-700 border border-slate-700 hover:border-slate-600 rounded-xl font-bold text-slate-200 transition-all">
+                    <i class="fas fa-tools mr-2"></i> Practice Mode
+                </button>
+            </div>
+        </div>
+
+        <!-- View: Custom Setup -->
+        <div id="view-setup"
+            class="hidden max-w-md w-full bg-slate-800 p-6 rounded-2xl shadow-2xl border border-slate-700">
+            <h2 class="text-2xl font-bold mb-6 text-white"><i class="fas fa-sliders-h mr-2"></i>Configuration</h2>
+
+            <div class="space-y-6">
+                <div>
+                    <label class="block text-sm font-medium text-slate-400 mb-2">Number of Variables</label>
+                    <div class="grid grid-cols-3 gap-2">
+                        <button onclick="app.setSetupVar(2)"
+                            class="setup-var-btn py-2 rounded bg-slate-700 hover:bg-indigo-600 transition"
+                            data-val="2">2 Vars</button>
+                        <button onclick="app.setSetupVar(3)"
+                            class="setup-var-btn py-2 rounded bg-slate-700 hover:bg-indigo-600 transition"
+                            data-val="3">3 Vars</button>
+                        <button onclick="app.setSetupVar(4)"
+                            class="setup-var-btn py-2 rounded bg-slate-700 hover:bg-indigo-600 transition"
+                            data-val="4">4 Vars</button>
+                    </div>
+                </div>
+
+                <div class="flex items-center justify-between p-3 bg-slate-700/50 rounded-lg">
+                    <label class="text-sm font-medium text-slate-300">Allow Don't Cares (X)</label>
+                    <input type="checkbox" id="setup-dontcare" class="w-5 h-5 rounded accent-indigo-500">
+                </div>
+
+                <div class="flex gap-3 pt-4">
+                    <button onclick="app.showMenu()" class="flex-1 py-2 text-slate-400 hover:text-white">Back</button>
+                    <button onclick="app.launchCustomGame()"
+                        class="flex-1 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg font-bold">Start</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- View: Game Board -->
+        <div id="view-game" class="hidden w-full h-full flex flex-col md:flex-row overflow-hidden">
+
+            <!-- Left: Game Area -->
+            <div class="flex-1 flex flex-col items-center justify-center p-4 overflow-auto relative">
+
+                <!-- Game Info Bar -->
+                <div class="absolute top-4 left-4 right-4 flex justify-between items-start pointer-events-none">
+                    <div
+                        class="pointer-events-auto bg-slate-800/90 backdrop-blur p-3 rounded-lg border border-slate-700 shadow-lg">
+                        <div class="text-xs text-slate-400 uppercase tracking-wider">Objective</div>
+                        <div class="font-medium text-sm text-indigo-200">Group all <span
+                                class="text-emerald-400 font-bold">1</span>s. Avoid <span
+                                class="text-rose-400 font-bold">0</span>s.</div>
+                    </div>
+
+                    <div class="pointer-events-auto flex gap-2">
+                        <button onclick="app.toggleHint()"
+                            class="bg-amber-500/10 text-amber-400 border border-amber-500/30 px-3 py-2 rounded hover:bg-amber-500/20 transition text-sm font-bold">
+                            <i class="fas fa-lightbulb mr-1"></i> Hint
+                        </button>
+                    </div>
+                </div>
+
+                <!-- K-Map Container -->
+                <div class="relative mt-12 mb-8">
+                    <!-- Labels -->
+                    <div id="kmap-container"
+                        class="relative p-8 bg-slate-800 rounded-xl shadow-2xl border border-slate-700">
+                        <div class="absolute top-2 left-2 font-bold text-slate-500 mono text-sm" id="map-vars">AB \ CD
+                        </div>
+                        <!-- Grid generated by JS -->
+                        <div id="grid-root" class="kmap-grid relative z-0"></div>
+                        <!-- Overlay Layer for SVG groups -->
+                        <svg id="groups-layer"
+                            class="absolute top-0 left-0 w-full h-full pointer-events-none z-10 overflow-visible"></svg>
+                    </div>
+                </div>
+
+                <!-- Selection Controls -->
+                <div class="flex gap-4 items-center bg-slate-800 p-2 rounded-lg border border-slate-700 shadow-lg z-20">
+                    <span class="text-xs text-slate-400 px-2">Selected: <span id="selection-count"
+                            class="font-bold text-white">0</span> cells</span>
+                    <button onclick="app.createGroup()"
+                        class="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-1.5 rounded text-sm font-bold transition disabled:opacity-50 disabled:cursor-not-allowed"
+                        id="btn-add-group">
+                        <i class="fas fa-plus mr-1"></i> Add Group
+                    </button>
+                    <button onclick="app.clearSelection()" class="text-slate-400 hover:text-white px-2 text-sm">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+
+            </div>
+
+            <!-- Right: Control Panel -->
+            <div class="w-full md:w-80 bg-slate-800 border-l border-slate-700 flex flex-col z-20 shadow-2xl">
+
+                <!-- User Equation Input -->
+                <div class="p-6 border-b border-slate-700 bg-slate-800/50">
+                    <label class="block text-xs font-bold text-slate-400 uppercase mb-2">Boolean Equation</label>
+                    <div class="relative">
+                        <input type="text" id="equation-input" placeholder="e.g. A'B + CD"
+                            class="w-full bg-slate-900 border border-slate-600 rounded p-3 text-white mono focus:border-indigo-500 focus:outline-none placeholder-slate-600">
+                    </div>
+                    <p class="text-[10px] text-slate-500 mt-2">Use ' for NOT (e.g., A'). + for OR. Adjacency implies
+                        AND.</p>
+                </div>
+
+                <!-- Groups List -->
+                <div class="flex-1 overflow-y-auto p-4">
+                    <h3 class="text-xs font-bold text-slate-400 uppercase mb-3">Active Groups</h3>
+                    <div id="groups-list" class="space-y-2">
+                        <!-- Group items injected here -->
+                        <div class="text-sm text-slate-500 italic text-center py-4">No groups created yet.<br>Select
+                            cells on grid to begin.</div>
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="p-4 bg-slate-900 border-t border-slate-700 space-y-3">
+                    <button onclick="app.checkSolution()"
+                        class="w-full bg-indigo-600 hover:bg-indigo-500 text-white py-3 rounded-lg font-bold shadow-lg shadow-indigo-900/20 transition transform active:scale-95">
+                        CHECK SOLUTION
+                    </button>
+
+                    <button onclick="app.newProblem()"
+                        class="w-full bg-emerald-600 hover:bg-emerald-500 text-emerald-50 py-2 rounded-lg font-bold shadow-lg transition">
+                        <i class="fas fa-sync-alt mr-2"></i> New Problem
+                    </button>
+
+                    <div class="grid grid-cols-2 gap-2">
+                        <button onclick="app.restartLevel()"
+                            class="bg-slate-700 hover:bg-slate-600 text-slate-200 py-2 rounded text-sm font-medium">Reset
+                            Board</button>
+                        <button onclick="app.showAnswer()"
+                            class="bg-slate-700 hover:bg-slate-600 text-rose-300 py-2 rounded text-sm font-medium">Give
+                            Up</button>
+                    </div>
+
+                    <button onclick="app.showMenu()"
+                        class="w-full text-xs text-slate-500 hover:text-slate-300 pt-2">Exit to Main Menu</button>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Feedback Modal -->
+    <div id="modal-feedback"
+        class="hidden fixed inset-0 z-50 bg-black/80 flex items-center justify-center backdrop-blur-sm">
+        <div
+            class="bg-slate-800 border border-slate-600 rounded-2xl p-8 max-w-sm w-full text-center shadow-2xl transform transition-all scale-100">
+            <div id="modal-icon" class="text-5xl mb-4"></div>
+            <h3 id="modal-title" class="text-2xl font-bold text-white mb-2"></h3>
+            <p id="modal-msg" class="text-slate-300 mb-6"></p>
+            <button onclick="app.closeModal()" id="modal-btn"
+                class="w-full py-3 rounded-lg font-bold text-white bg-indigo-600 hover:bg-indigo-500">Continue</button>
+        </div>
+    </div>
+
+    <!-- JS LOGIC -->
+    <script>
+        /* --- LOGIC ENGINE: QUINE-MCCLUSKEY & UTILS --- */
+
+        const Utils = {
+            // Convert decimal to binary string padded to n bits
+            toBin: (num, vars) => num.toString(2).padStart(vars, '0'),
+
+            // Calculate Hamming distance between two integers
+            hammingDistance: (a, b) => {
+                let x = a ^ b;
+                let setBits = 0;
+                while (x > 0) {
+                    setBits += x & 1;
+                    x >>= 1;
+                }
+                return setBits;
+            },
+
+            // Gray Code Sequences
+            grayCodes: {
+                2: ['00', '01', '11', '10'], // AB: 00, 01, 11, 10 (Actually usually A is row, B is col)
+                // Standard layout mapping for K-Map Visuals
+                // 2 Vars: Rows (A: 0,1), Cols (B: 0,1)
+                // 3 Vars: Rows (A: 0,1), Cols (BC: 00, 01, 11, 10)
+                // 4 Vars: Rows (AB: 00,01,11,10), Cols (CD: 00,01,11,10)
+            },
+
+            // Get visually adjacent indices in logic space (handling wrap)
+            // This is for hint generation mostly. 
+            getNeighbors: (index, numVars) => {
+                let neighbors = [];
+                for (let i = 0; i < numVars; i++) {
+                    neighbors.push(index ^ (1 << i));
+                }
+                return neighbors;
+            },
+
+            // Check if a set of indices forms a valid power-of-2 subcube
+            isValidGroup: (indices, numVars) => {
+                if (![1, 2, 4, 8, 16].includes(indices.length)) return false;
+
+                // Check if all indices share common literals
+                // A group is valid if, for every bit position, the bit is either 
+                // constant for all numbers, or varies perfectly to cover all combinations.
+                // Quine-McCluskey logic:
+                // 1. Take first number.
+                // 2. Calculate XOR diffs with all others.
+                // 3. OR all diffs together to get 'varyMask'.
+                // 4. Check if the count of bits in varyMask is log2(groupSize).
+                // 5. Check if the indices match exactly the pattern generated by varying those bits.
+
+                if (indices.length === 1) return true;
+
+                const base = indices[0];
+                let varyMask = 0;
+                for (let i = 1; i < indices.length; i++) {
+                    varyMask |= (base ^ indices[i]);
+                }
+
+                // Count set bits in varyMask
+                let varyingBits = 0;
+                let temp = varyMask;
+                while (temp) { varyingBits += temp & 1; temp >>= 1; }
+
+                if (Math.pow(2, varyingBits) !== indices.length) return false;
+
+                // Verify all permutations exist in the set
+                // We can verify this by checking if every index in the set satisfies (index & ~varyMask) == (base & ~varyMask)
+                const constantMask = ~varyMask & ((1 << numVars) - 1);
+                const constantValue = base & constantMask;
+
+                for (let idx of indices) {
+                    if ((idx & constantMask) !== constantValue) return false;
+                }
+                return true;
+            }
+        };
+
+        class Solver {
+            constructor(numVars, minterms, dontCares) {
+                this.numVars = numVars;
+                this.minterms = new Set(minterms);
+                this.dontCares = new Set(dontCares);
+            }
+
+            // Simplified Solver for N <= 4
+            // Returns list of Essential Prime Implicants as strings of (0, 1, -)
+            solve() {
+                // 1. Combine minterms and dontCares
+                let currentGroups = [];
+                let allTerms = [...this.minterms, ...this.dontCares];
+
+                // Initial grouping by number of 1s
+                let groups = Array.from({ length: this.numVars + 1 }, () => []);
+                allTerms.forEach(t => {
+                    let bin = Utils.toBin(t, this.numVars);
+                    let ones = bin.split('1').length - 1;
+                    groups[ones].push({ bin: bin, indices: [t], checked: false });
+                });
+
+                let primeImplicants = [];
+
+                // Iterative reduction
+                let changed = true;
+                while (changed) {
+                    changed = false;
+                    let nextGroups = Array.from({ length: this.numVars + 1 }, () => []);
+
+                    for (let i = 0; i < groups.length - 1; i++) {
+                        for (let t1 of groups[i]) {
+                            for (let t2 of groups[i + 1]) {
+                                let diff = this.getDifference(t1.bin, t2.bin);
+                                if (diff.count === 1) {
+                                    t1.checked = true;
+                                    t2.checked = true;
+                                    let newBin = t1.bin.substring(0, diff.index) + '-' + t1.bin.substring(diff.index + 1);
+                                    let newIndices = [...t1.indices, ...t2.indices].sort((a, b) => a - b);
+
+                                    // Avoid duplicates
+                                    if (!nextGroups[i].some(x => x.bin === newBin)) {
+                                        nextGroups[i].push({ bin: newBin, indices: newIndices, checked: false });
+                                        changed = true;
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    // Collect unchecked terms as Prime Implicants
+                    groups.flat().forEach(t => {
+                        if (!t.checked && !primeImplicants.some(p => p.bin === t.bin)) {
+                            primeImplicants.push(t);
+                        }
+                    });
+
+                    if (changed) groups = nextGroups;
+                }
+                // Final sweep
+                groups.flat().forEach(t => {
+                    if (!primeImplicants.some(p => p.bin === t.bin)) {
+                        primeImplicants.push(t);
+                    }
+                });
+
+                // Petrick's Method or Essential Check (Simplified for game: Just greedy cover)
+                // We want to cover only Minterms (not dont cares)
+                let remainingMinterms = [...this.minterms];
+                let essentialPIs = [];
+
+                // Simple Greedy approach for game purposes (Optimal enough for 4 vars)
+                // Sort PIs by size (largest covers first -> fewer dashes means smaller group, more dashes means larger group)
+                // Logic: dashes count. '001-' has 1 dash (size 2). '----' has 4 dashes (size 16).
+                primeImplicants.sort((a, b) => {
+                    let dashesA = a.bin.split('-').length;
+                    let dashesB = b.bin.split('-').length;
+                    return dashesB - dashesA;
+                });
+
+                for (let pi of primeImplicants) {
+                    // Does this PI cover any remaining minterms?
+                    let covers = pi.indices.filter(idx => remainingMinterms.includes(idx));
+                    if (covers.length > 0) {
+                        essentialPIs.push(pi);
+                        remainingMinterms = remainingMinterms.filter(m => !covers.includes(m));
+                    }
+                }
+
+                return essentialPIs;
+            }
+
+            getDifference(bin1, bin2) {
+                let count = 0;
+                let index = -1;
+                for (let i = 0; i < bin1.length; i++) {
+                    if (bin1[i] !== bin2[i]) {
+                        count++;
+                        index = i;
+                    }
+                }
+                return { count, index };
+            }
+
+            static binToTerm(bin, vars) {
+                // Convert '0-10' to A'CD'
+                const names = ['A', 'B', 'C', 'D'];
+                let term = "";
+                for (let i = 0; i < vars; i++) {
+                    if (bin[i] === '0') term += names[i] + "'";
+                    if (bin[i] === '1') term += names[i];
+                }
+                return term || "1";
+            }
+        }
+
+        /* --- APP LOGIC --- */
+
+        const AppState = {
+            stage: 1, // 1, 2, 3
+            mode: 'menu', // menu, game
+            numVars: 2,
+            useDontCares: false,
+            minterms: new Set(),
+            dontCares: new Set(),
+            userGroups: [], // { id, indices: [], color }
+            selectedIndices: new Set(),
+            colors: ['bg-red-500', 'bg-blue-500', 'bg-green-500', 'bg-yellow-500', 'bg-purple-500'],
+            colorIndex: 0
+        };
+
+        const app = {
+            init: () => {
+                // Initialization
+                app.showMenu();
+            },
+
+            /* --- NAVIGATION --- */
+            showMenu: () => {
+                document.getElementById('view-menu').classList.remove('hidden');
+                document.getElementById('view-setup').classList.add('hidden');
+                document.getElementById('view-game').classList.add('hidden');
+                document.getElementById('stage-indicator').innerText = "Main Menu";
+            },
+
+            showSettings: () => {
+                alert("Settings: Sound (On), High Contrast (Off). (Placeholder)");
+            },
+
+            startCampaign: () => {
+                AppState.mode = 'campaign';
+                app.loadStage(1);
+            },
+
+            loadStage: (stage) => {
+                AppState.stage = stage;
+                AppState.userGroups = [];
+                AppState.selectedIndices.clear();
+                document.getElementById('equation-input').value = '';
+
+                if (stage === 1) {
+                    AppState.numVars = 2;
+                    AppState.useDontCares = false;
+                } else if (stage === 2) {
+                    AppState.numVars = 3;
+                    AppState.useDontCares = false;
+                } else if (stage === 3) {
+                    AppState.numVars = 4;
+                    AppState.useDontCares = true;
+                }
+
+                app.generateLevel();
+                app.startGameView();
+                document.getElementById('stage-indicator').innerText = `Campaign - Stage ${stage}`;
+            },
+
+            startCustomSetup: () => {
+                document.getElementById('view-menu').classList.add('hidden');
+                document.getElementById('view-setup').classList.remove('hidden');
+                AppState.numVars = 2; // Default
+                app.updateSetupUI();
+            },
+
+            setSetupVar: (n) => {
+                AppState.numVars = n;
+                app.updateSetupUI();
+            },
+
+            updateSetupUI: () => {
+                document.querySelectorAll('.setup-var-btn').forEach(btn => {
+                    if (parseInt(btn.dataset.val) === AppState.numVars) {
+                        btn.classList.add('bg-indigo-600', 'text-white');
+                        btn.classList.remove('bg-slate-700');
+                    } else {
+                        btn.classList.remove('bg-indigo-600', 'text-white');
+                        btn.classList.add('bg-slate-700');
+                    }
+                });
+            },
+
+            launchCustomGame: () => {
+                AppState.mode = 'custom';
+                AppState.useDontCares = document.getElementById('setup-dontcare').checked;
+                AppState.userGroups = [];
+                AppState.selectedIndices.clear();
+                document.getElementById('equation-input').value = '';
+
+                app.generateLevel();
+                app.startGameView();
+                document.getElementById('stage-indicator').innerText = `Practice Mode - ${AppState.numVars} Vars`;
+            },
+
+            startGameView: () => {
+                document.getElementById('view-menu').classList.add('hidden');
+                document.getElementById('view-setup').classList.add('hidden');
+                document.getElementById('view-game').classList.remove('hidden');
+                app.renderGrid();
+                app.renderGroupsList();
+            },
+
+            /* --- GAME LOGIC --- */
+
+            newProblem: () => {
+                app.generateLevel();
+                app.restartLevel();
+                // Optional: Brief toast or just visual refresh
+            },
+
+            generateLevel: () => {
+                // Random generation logic
+                const totalCells = Math.pow(2, AppState.numVars);
+                AppState.minterms.clear();
+                AppState.dontCares.clear();
+
+                // Ensure at least one group exists
+                // Heuristic: Pick a random center, and expand
+                let filled = 0;
+
+                // Random fill density between 30% and 60%
+                for (let i = 0; i < totalCells; i++) {
+                    const rand = Math.random();
+                    if (rand > 0.6) {
+                        AppState.minterms.add(i);
+                    } else if (AppState.useDontCares && rand < 0.1) {
+                        AppState.dontCares.add(i);
+                    }
+                }
+
+                // Safety: Ensure not empty
+                if (AppState.minterms.size === 0) AppState.minterms.add(0);
+            },
+
+            restartLevel: () => {
+                AppState.userGroups = [];
+                AppState.selectedIndices.clear();
+                document.getElementById('equation-input').value = '';
+                app.renderGrid();
+                app.renderGroupsList();
+                app.renderGroupsOverlay();
+            },
+
+            /* --- RENDERING --- */
+
+            renderGrid: () => {
+                const root = document.getElementById('grid-root');
+                const mapVars = document.getElementById('map-vars');
+                root.innerHTML = '';
+
+                // Config Grid Cols
+                // 2 Vars: 2 cols. 3 Vars: 4 cols. 4 Vars: 4 cols.
+                let cols = AppState.numVars === 2 ? 2 : 4;
+                let rows = AppState.numVars === 4 ? 4 : 2;
+
+                root.style.gridTemplateColumns = `repeat(${cols}, minmax(60px, 1fr))`;
+                root.style.gridTemplateRows = `repeat(${rows}, minmax(60px, 1fr))`;
+
+                // Labels
+                if (AppState.numVars === 2) mapVars.innerText = "A \\ B";
+                if (AppState.numVars === 3) mapVars.innerText = "A \\ BC";
+                if (AppState.numVars === 4) mapVars.innerText = "AB \\ CD";
+
+                // Create Gray Code Mapping
+                // 2 Vars: Row(A)[0,1], Col(B)[0,1]
+                // 3 Vars: Row(A)[0,1], Col(BC)[00,01,11,10]
+                // 4 Vars: Row(AB)[00,01,11,10], Col(CD)[00,01,11,10]
+
+                const rowCodes = AppState.numVars === 4 ? Utils.grayCodes[2] : ['0', '1'];
+                const colCodes = AppState.numVars === 2 ? ['0', '1'] : Utils.grayCodes[2];
+
+                // Add Column Headers (Top)
+                // We actually need to render grid items. To allow headers, the CSS grid would be complex.
+                // Simplified: Just render the cells, user implies headers from Gray Code knowledge or tooltips.
+                // Better: Add headers to the visual container.
+
+                // Actually, let's just render cells with tooltips for coordinates
+                // Logic Index Mapping
+                for (let r = 0; r < rows; r++) {
+                    for (let c = 0; c < cols; c++) {
+                        // Determine logical index
+                        let rowBits = rowCodes[r];
+                        let colBits = colCodes[c];
+                        let binaryStr = rowBits + colBits;
+                        let index = parseInt(binaryStr, 2);
+
+                        const cell = document.createElement('div');
+                        cell.className = `cell relative bg-slate-700 border border-slate-600 flex items-center justify-center text-2xl font-bold cursor-pointer h-20 select-none`;
+                        cell.dataset.index = index;
+                        cell.onclick = () => app.toggleCellSelection(index);
+
+                        // Content
+                        let val = '0';
+                        let colorClass = 'text-slate-500';
+                        if (AppState.minterms.has(index)) {
+                            val = '1';
+                            colorClass = 'text-white';
+                        } else if (AppState.dontCares.has(index)) {
+                            val = 'X';
+                            colorClass = 'text-yellow-500';
+                        }
+
+                        cell.innerHTML = `<span class="${colorClass}">${val}</span>`;
+
+                        // Label (Coordinate)
+                        const label = document.createElement('div');
+                        label.className = "absolute top-1 left-1 text-[10px] text-white font-bold mono opacity-90";
+                        label.innerText = binaryStr;
+                        cell.appendChild(label);
+
+                        // Selection Highlighting
+                        if (AppState.selectedIndices.has(index)) {
+                            cell.classList.add('ring-2', 'ring-indigo-400', 'bg-slate-600');
+                        }
+
+                        root.appendChild(cell);
+                    }
+                }
+
+                app.updateSelectionCount();
+            },
+
+            /* --- INTERACTION --- */
+
+            toggleCellSelection: (index) => {
+                if (AppState.selectedIndices.has(index)) {
+                    AppState.selectedIndices.delete(index);
+                } else {
+                    AppState.selectedIndices.add(index);
+                }
+                app.renderGrid(); // Re-render to show selection border
+            },
+
+            clearSelection: () => {
+                AppState.selectedIndices.clear();
+                app.renderGrid();
+            },
+
+            updateSelectionCount: () => {
+                const count = AppState.selectedIndices.size;
+                document.getElementById('selection-count').innerText = count;
+                document.getElementById('btn-add-group').disabled = count === 0;
+            },
+
+            createGroup: () => {
+                const indices = Array.from(AppState.selectedIndices).sort((a, b) => a - b);
+
+                // Validation 1: Power of 2
+                if (!Utils.isValidGroup(indices, AppState.numVars)) {
+                    app.showModal("Invalid Group", "Selection must be a power of 2 (1, 2, 4, 8...) and form a rectangular block (including wraps).", "fa-exclamation-triangle");
+                    return;
+                }
+
+                // Validation 2: Content Check (No Zeros)
+                for (let idx of indices) {
+                    if (!AppState.minterms.has(idx) && !AppState.dontCares.has(idx)) {
+                        app.showModal("Invalid Content", "Groups cannot contain '0' cells.", "fa-times-circle");
+                        return;
+                    }
+                }
+
+                // Add Group
+                const color = AppState.colors[AppState.colorIndex % AppState.colors.length];
+                AppState.colorIndex++;
+
+                AppState.userGroups.push({
+                    id: Date.now(),
+                    indices: indices,
+                    color: color
+                });
+
+                AppState.selectedIndices.clear();
+                app.renderGrid();
+                app.renderGroupsList();
+                app.renderGroupsOverlay();
+            },
+
+            removeGroup: (id) => {
+                AppState.userGroups = AppState.userGroups.filter(g => g.id !== id);
+                app.renderGroupsList();
+                app.renderGroupsOverlay();
+            },
+
+            renderGroupsList: () => {
+                const container = document.getElementById('groups-list');
+                container.innerHTML = '';
+
+                if (AppState.userGroups.length === 0) {
+                    container.innerHTML = '<div class="text-sm text-slate-500 italic text-center py-4">No active groups.</div>';
+                    return;
+                }
+
+                AppState.userGroups.forEach((g, i) => {
+                    const div = document.createElement('div');
+                    div.className = "flex items-center justify-between bg-slate-900 p-2 rounded border border-slate-700";
+
+                    // Color dot
+                    const dot = `<div class="w-3 h-3 rounded-full ${g.color.replace('bg-', 'bg-')} mr-2"></div>`;
+
+                    div.innerHTML = `
+                        <div class="flex items-center">
+                            <div class="w-3 h-3 rounded-full ${g.color} mr-3"></div>
+                            <span class="text-sm font-mono text-slate-300">Group ${i + 1} (${g.indices.length} cells)</span>
+                        </div>
+                        <button onclick="app.removeGroup(${g.id})" class="text-slate-500 hover:text-rose-500"><i class="fas fa-trash"></i></button>
+                    `;
+                    container.appendChild(div);
+                });
+            },
+
+            // Draw SVG overlays for groups
+            renderGroupsOverlay: () => {
+                // This is complex in HTML Grid. 
+                // Simplification: We will just highlight the cells in the grid with colored borders/backgrounds 
+                // corresponding to the groups. Since SVGs over CSS Grid is hard to align perfectly without fixed pixels.
+
+                // Alternative: Re-render grid cells with background colors mixed.
+                // Let's update renderGrid to handle group highlighting.
+
+                // Re-calling renderGrid is inefficient but safe. 
+                // Let's modify the cells directly.
+                const cells = document.querySelectorAll('.cell');
+                cells.forEach(c => {
+                    // Reset style except selection
+                    // Keep base styles
+                    const idx = parseInt(c.dataset.index);
+
+                    // Find groups containing this index
+                    const groups = AppState.userGroups.filter(g => g.indices.includes(idx));
+
+                    if (groups.length > 0) {
+                        // Apply color overlay
+                        // If multiple, blend? Just take last one.
+                        const colorClass = groups[groups.length - 1].color;
+                        // Tailwind colors map to hex for opacity
+                        const hexMap = {
+                            'bg-red-500': 'rgba(239, 68, 68, 0.4)', 'bg-blue-500': 'rgba(59, 130, 246, 0.4)',
+                            'bg-green-500': 'rgba(34, 197, 94, 0.4)', 'bg-yellow-500': 'rgba(234, 179, 8, 0.4)',
+                            'bg-purple-500': 'rgba(168, 85, 247, 0.4)'
+                        };
+
+                        c.style.backgroundColor = hexMap[colorClass] || 'rgba(255,255,255,0.2)';
+                        c.style.borderColor = "white";
+                    } else {
+                        c.style.backgroundColor = ""; // Revert to CSS class default
+                        c.style.borderColor = "";
+                    }
+                });
+            },
+
+            /* --- VALIDATION & HINTS --- */
+
+            toggleHint: () => {
+                // Find a 1 that isn't covered by user groups
+                const covered = new Set();
+                AppState.userGroups.forEach(g => g.indices.forEach(i => covered.add(i)));
+
+                const uncovered = [...AppState.minterms].filter(m => !covered.has(m));
+
+                if (uncovered.length > 0) {
+                    const target = uncovered[0];
+                    app.showModal("Hint", `Focus on the cell at index ${target} (Binary: ${Utils.toBin(target, AppState.numVars)}). It needs to be grouped.`, "fa-lightbulb");
+                } else {
+                    // All covered? Check redundancy.
+                    app.showModal("Hint", "All 1s are covered. Check if you have groups fully contained inside other groups, or if you can make groups larger.", "fa-check-circle");
+                }
+            },
+
+            showAnswer: () => {
+                // Solve
+                const solver = new Solver(AppState.numVars, AppState.minterms, AppState.dontCares);
+                const solution = solver.solve(); // Array of {bin, indices}
+
+                // Clear user groups
+                AppState.userGroups = [];
+
+                // Add solution groups
+                solution.forEach((sol, i) => {
+                    AppState.userGroups.push({
+                        id: Date.now() + i,
+                        indices: sol.indices,
+                        color: AppState.colors[i % AppState.colors.length]
+                    });
+                });
+
+                app.renderGrid();
+                app.renderGroupsList();
+                app.renderGroupsOverlay();
+
+                // Generate Text Equation
+                let eqParts = solution.map(s => Solver.binToTerm(s.bin, AppState.numVars));
+                document.getElementById('equation-input').value = eqParts.join(' + ');
+
+                app.showModal("Solved", "Here is the optimal grouping. Study the pattern!", "fa-graduation-cap");
+            },
+
+            checkSolution: () => {
+                // 1. Completeness Check
+                const covered = new Set();
+                AppState.userGroups.forEach(g => g.indices.forEach(i => covered.add(i)));
+
+                const missing = [...AppState.minterms].filter(m => !covered.has(m));
+                if (missing.length > 0) {
+                    app.showModal("Incomplete", "There are still 1s remaining on the map.", "fa-times-circle");
+                    return;
+                }
+
+                // 2. Redundancy/Optimality Check via Solver
+                const solver = new Solver(AppState.numVars, AppState.minterms, AppState.dontCares);
+                const optimalPIs = solver.solve();
+
+                // Basic Check: Is User Group Count <= Optimal Count?
+                // This isn't perfect (multiple solutions exist), but good for learning.
+                // Better: Check if User Logic is Equivalent AND minimal number of terms.
+
+                if (AppState.userGroups.length > optimalPIs.length) {
+                    app.showModal("Not Optimal", `You have ${AppState.userGroups.length} groups, but this can be solved with ${optimalPIs.length}. Look for larger patterns or redundant groups.`, "fa-compress-arrows-alt");
+                    return;
+                }
+
+                // 3. Equation Check (Optional if field is not empty)
+                const userEq = document.getElementById('equation-input').value.trim();
+                if (userEq) {
+                    // Very basic validation: check if non-empty. 
+                    // Parsing Boolean algebra is complex for a single file without eval()
+                    // We'll assume if groups are correct, allow pass, but warn if empty.
+                } else {
+                    // If equation is empty, prompt? No, allow visual solve only.
+                }
+
+                // Success!
+                app.showModal("Success!", "Great job! You've simplified the map correctly.", "fa-trophy");
+
+                if (AppState.mode === 'campaign' && AppState.stage < 3) {
+                    // Update modal button to say Next Stage
+                    const btn = document.getElementById('modal-btn');
+                    btn.onclick = () => {
+                        app.closeModal();
+                        app.loadStage(AppState.stage + 1);
+                    };
+                    btn.innerText = "Next Stage";
+                }
+            },
+
+            /* --- UTILS --- */
+            showModal: (title, msg, icon) => {
+                document.getElementById('modal-title').innerText = title;
+                document.getElementById('modal-msg').innerText = msg;
+                document.getElementById('modal-icon').innerHTML = `<i class="fas ${icon} text-indigo-400"></i>`;
+                document.getElementById('modal-feedback').classList.remove('hidden');
+
+                // Reset button default
+                const btn = document.getElementById('modal-btn');
+                btn.innerText = "Continue";
+                btn.onclick = app.closeModal;
+            },
+
+            closeModal: () => {
+                document.getElementById('modal-feedback').classList.add('hidden');
+            }
+        };
+
+        // Init
+        window.onload = app.init;
+
+    </script>
+</body>
+
+</html>
