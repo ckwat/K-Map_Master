@@ -15,13 +15,14 @@
     <link rel="icon" type="image/png" href="./icon_k-map.png">
     <link rel="apple-touch-icon" href="./icon_k-map.png">
     <link rel="apple-touch-icon" sizes="180x180" href="./icon_k-map.png">
+
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Inter:wght@300;400;600;800&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Inter:wght@300;400;600;800&family=Noto+Sans+TC:wght@400;700&display=swap');
 
         body {
-            font-family: 'Inter', sans-serif;
+            font-family: 'Inter', 'Noto Sans TC', sans-serif;
             background-color: #0f172a;
             color: #e2e8f0;
         }
@@ -68,14 +69,6 @@
             overflow: hidden;
         }
 
-        .group-overlay {
-            pointer-events: none;
-            position: absolute;
-            border-radius: 8px;
-            opacity: 0.5;
-            transition: all 0.3s ease;
-        }
-
         /* Animation for success */
         @keyframes success-pop {
             0% {
@@ -107,11 +100,19 @@
                 <i class="fas fa-microchip text-lg md:text-xl"></i>
             </div>
             <div>
-                <h1 class="font-bold text-lg md:text-xl tracking-tight text-white">K-Map Master</h1>
-                <p class="text-[10px] md:text-xs text-slate-400" id="stage-indicator">Main Menu</p>
+                <h1 class="font-bold text-lg md:text-xl tracking-tight text-white" data-i18n="appTitle">K-Map Master
+                </h1>
+                <p class="text-[10px] md:text-xs text-slate-400" id="stage-indicator" data-i18n="menuSubtitle">Main Menu
+                </p>
             </div>
         </div>
-        <div class="flex gap-2">
+        <div class="flex items-center gap-2">
+            <!-- Language Selector -->
+            <select id="lang-selector" onchange="app.setLanguage(this.value)"
+                class="bg-slate-700 text-white text-xs md:text-sm rounded px-2 py-1 border border-slate-600 focus:outline-none focus:border-indigo-500">
+                <option value="en">English</option>
+                <option value="zh">繁體中文</option>
+            </select>
             <button onclick="app.showSettings()" class="p-2 text-slate-400 hover:text-white transition"><i
                     class="fas fa-cog"></i></button>
         </div>
@@ -124,27 +125,25 @@
         <div id="view-menu"
             class="text-center max-w-md w-full p-6 space-y-8 animate-fade-in overflow-y-auto max-h-full">
             <div class="space-y-2">
-                <h2
-                    class="text-3xl md:text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-cyan-400">
-                    Logic Simplified</h2>
-                <p class="text-slate-400 text-sm md:text-base">Master Boolean Algebra optimization through interactive
-                    visualization.</p>
+                <h2 class="text-3xl md:text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-cyan-400"
+                    data-i18n="heroTitle">Logic Simplified</h2>
+                <p class="text-slate-400 text-sm md:text-base" data-i18n="heroDesc">Master Boolean Algebra optimization
+                    through interactive visualization.</p>
             </div>
 
             <div class="grid gap-4">
                 <button onclick="app.startCampaign()"
                     class="group relative w-full py-4 px-6 bg-indigo-600 hover:bg-indigo-500 rounded-xl font-bold text-white shadow-lg shadow-indigo-900/50 transition-all hover:-translate-y-1">
                     <div class="flex items-center justify-between">
-                        <span><i class="fas fa-play mr-2"></i> Campaign Mode</span>
-                        <span
-                            class="text-xs bg-indigo-800 px-2 py-1 rounded text-indigo-200 group-hover:bg-indigo-700">Stage
-                            1-3</span>
+                        <span><i class="fas fa-play mr-2"></i> <span data-i18n="btnCampaign">Campaign Mode</span></span>
+                        <span class="text-xs bg-indigo-800 px-2 py-1 rounded text-indigo-200 group-hover:bg-indigo-700"
+                            data-i18n="tagStages">Stage 1-3</span>
                     </div>
                 </button>
 
                 <button onclick="app.startCustomSetup()"
                     class="w-full py-4 px-6 bg-slate-800 hover:bg-slate-700 border border-slate-700 hover:border-slate-600 rounded-xl font-bold text-slate-200 transition-all">
-                    <i class="fas fa-tools mr-2"></i> Practice Mode
+                    <i class="fas fa-tools mr-2"></i> <span data-i18n="btnPractice">Practice Mode</span>
                 </button>
             </div>
         </div>
@@ -152,11 +151,13 @@
         <!-- View: Custom Setup -->
         <div id="view-setup"
             class="hidden max-w-md w-full bg-slate-800 p-6 rounded-2xl shadow-2xl border border-slate-700">
-            <h2 class="text-2xl font-bold mb-6 text-white"><i class="fas fa-sliders-h mr-2"></i>Configuration</h2>
+            <h2 class="text-2xl font-bold mb-6 text-white"><i class="fas fa-sliders-h mr-2"></i><span
+                    data-i18n="configTitle">Configuration</span></h2>
 
             <div class="space-y-6">
                 <div>
-                    <label class="block text-sm font-medium text-slate-400 mb-2">Number of Variables</label>
+                    <label class="block text-sm font-medium text-slate-400 mb-2" data-i18n="lblVars">Number of
+                        Variables</label>
                     <div class="grid grid-cols-3 gap-2">
                         <button onclick="app.setSetupVar(2)"
                             class="setup-var-btn py-2 rounded bg-slate-700 hover:bg-indigo-600 transition"
@@ -171,14 +172,17 @@
                 </div>
 
                 <div class="flex items-center justify-between p-3 bg-slate-700/50 rounded-lg">
-                    <label class="text-sm font-medium text-slate-300">Allow Don't Cares (X)</label>
+                    <label class="text-sm font-medium text-slate-300" data-i18n="lblDontCare">Allow Don't Cares
+                        (X)</label>
                     <input type="checkbox" id="setup-dontcare" class="w-5 h-5 rounded accent-indigo-500">
                 </div>
 
                 <div class="flex gap-3 pt-4">
-                    <button onclick="app.showMenu()" class="flex-1 py-2 text-slate-400 hover:text-white">Back</button>
+                    <button onclick="app.showMenu()" class="flex-1 py-2 text-slate-400 hover:text-white"
+                        data-i18n="btnBack">Back</button>
                     <button onclick="app.launchCustomGame()"
-                        class="flex-1 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg font-bold">Start</button>
+                        class="flex-1 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg font-bold"
+                        data-i18n="btnStart">Start</button>
                 </div>
             </div>
         </div>
@@ -187,7 +191,6 @@
         <div id="view-game" class="hidden w-full h-full flex flex-col md:flex-row overflow-hidden">
 
             <!-- Left: Game Area (Map) -->
-            <!-- Mobile: flex-1 (takes available space), Desktop: flex-1 -->
             <div
                 class="flex-1 flex flex-col items-center justify-center p-2 md:p-4 overflow-auto relative bg-slate-900">
 
@@ -196,44 +199,43 @@
                     class="absolute top-2 left-2 right-2 md:top-4 md:left-4 md:right-4 flex justify-between items-start pointer-events-none z-20">
                     <div
                         class="pointer-events-auto bg-slate-800/90 backdrop-blur p-2 md:p-3 rounded-lg border border-slate-700 shadow-lg max-w-[60%]">
-                        <div class="text-[10px] text-slate-400 uppercase tracking-wider hidden md:block">Objective</div>
-                        <div class="font-medium text-xs md:text-sm text-indigo-200 leading-tight">Group <span
-                                class="text-emerald-400 font-bold">1</span>s. Avoid <span
+                        <div class="text-[10px] text-slate-400 uppercase tracking-wider hidden md:block"
+                            data-i18n="lblObj">Objective</div>
+                        <div class="font-medium text-xs md:text-sm text-indigo-200 leading-tight" data-i18n="txtObj">
+                            Group <span class="text-emerald-400 font-bold">1</span>s. Avoid <span
                                 class="text-rose-400 font-bold">0</span>s.</div>
                     </div>
 
                     <div class="pointer-events-auto flex gap-2">
                         <button onclick="app.toggleHint()"
                             class="bg-amber-500/10 text-amber-400 border border-amber-500/30 px-2 py-1 md:px-3 md:py-2 rounded hover:bg-amber-500/20 transition text-xs md:text-sm font-bold">
-                            <i class="fas fa-lightbulb mr-1"></i> Hint
+                            <i class="fas fa-lightbulb mr-1"></i> <span data-i18n="btnHint">Hint</span>
                         </button>
                     </div>
                 </div>
 
                 <!-- K-Map Container -->
                 <div class="relative mt-8 md:mt-12 mb-4 md:mb-8 flex-shrink-0">
-                    <!-- Labels -->
                     <div id="kmap-container"
                         class="relative p-3 md:p-8 bg-slate-800 rounded-xl shadow-2xl border border-slate-700">
                         <div class="absolute top-1 left-2 md:top-2 md:left-2 font-bold text-slate-500 mono text-[10px] md:text-sm"
                             id="map-vars">AB \ CD</div>
-                        <!-- Grid generated by JS -->
                         <div id="grid-root" class="kmap-grid relative z-0"></div>
-                        <!-- Overlay Layer for SVG groups -->
                         <svg id="groups-layer"
                             class="absolute top-0 left-0 w-full h-full pointer-events-none z-10 overflow-visible"></svg>
                     </div>
                 </div>
 
-                <!-- Selection Controls (Floating on Mobile) -->
+                <!-- Selection Controls -->
                 <div
                     class="flex gap-2 md:gap-4 items-center bg-slate-800 p-2 rounded-lg border border-slate-700 shadow-lg z-20 mb-2">
-                    <span class="text-[10px] md:text-xs text-slate-400 px-1 md:px-2">Sel: <span id="selection-count"
+                    <span class="text-[10px] md:text-xs text-slate-400 px-1 md:px-2"><span
+                            data-i18n="lblSel">Sel:</span> <span id="selection-count"
                             class="font-bold text-white">0</span></span>
                     <button onclick="app.createGroup()"
                         class="bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-1.5 md:px-4 rounded text-xs md:text-sm font-bold transition disabled:opacity-50 disabled:cursor-not-allowed"
                         id="btn-add-group">
-                        <i class="fas fa-plus mr-1"></i> Add
+                        <i class="fas fa-plus mr-1"></i> <span data-i18n="btnAdd">Add</span>
                     </button>
                     <button onclick="app.clearSelection()" class="text-slate-400 hover:text-white px-2 text-sm">
                         <i class="fas fa-times"></i>
@@ -243,57 +245,56 @@
             </div>
 
             <!-- Right: Control Panel -->
-            <!-- Mobile: Fixed height (45% max), Scrollable. Desktop: Fixed Width (80 = 20rem), Full Height -->
             <div
                 class="w-full md:w-80 h-[45vh] md:h-full bg-slate-800 border-t md:border-t-0 md:border-l border-slate-700 flex flex-col z-30 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)] shrink-0">
 
                 <!-- User Equation Input -->
                 <div class="p-4 md:p-6 border-b border-slate-700 bg-slate-800/50">
-                    <label class="block text-[10px] md:text-xs font-bold text-slate-400 uppercase mb-2">Boolean
-                        Equation</label>
+                    <label class="block text-[10px] md:text-xs font-bold text-slate-400 uppercase mb-2"
+                        data-i18n="lblEq">Boolean Equation</label>
                     <div class="relative">
                         <input type="text" id="equation-input" placeholder="e.g. A'B + CD"
                             class="w-full bg-slate-900 border border-slate-600 rounded p-2 md:p-3 text-sm text-white mono focus:border-indigo-500 focus:outline-none placeholder-slate-600">
                     </div>
-                    <p class="hidden md:block text-[10px] text-slate-500 mt-2">Use ' for NOT (e.g., A'). + for OR.</p>
+                    <p class="hidden md:block text-[10px] text-slate-500 mt-2" data-i18n="txtEqHelp">Use ' for NOT
+                        (e.g., A'). + for OR.</p>
                 </div>
 
                 <!-- Groups List -->
                 <div class="flex-1 overflow-y-auto p-3 md:p-4 min-h-0">
-                    <h3
-                        class="text-[10px] md:text-xs font-bold text-slate-400 uppercase mb-2 md:mb-3 sticky top-0 bg-slate-800 py-1">
-                        Active Groups</h3>
+                    <h3 class="text-[10px] md:text-xs font-bold text-slate-400 uppercase mb-2 md:mb-3 sticky top-0 bg-slate-800 py-1"
+                        data-i18n="lblActive">Active Groups</h3>
                     <div id="groups-list" class="space-y-2">
-                        <!-- Group items injected here -->
-                        <div class="text-xs md:text-sm text-slate-500 italic text-center py-4">No groups created yet.
-                        </div>
+                        <div class="text-xs md:text-sm text-slate-500 italic text-center py-4" data-i18n="txtNoGroups">
+                            No groups created yet.</div>
                     </div>
                 </div>
 
                 <!-- Action Buttons -->
                 <div class="p-3 md:p-4 bg-slate-900 border-t border-slate-700 space-y-2 md:space-y-3 pb-6 md:pb-4">
                     <button onclick="app.checkSolution()"
-                        class="w-full bg-indigo-600 hover:bg-indigo-500 text-white py-2 md:py-3 rounded-lg font-bold shadow-lg shadow-indigo-900/20 transition transform active:scale-95 text-sm md:text-base">
+                        class="w-full bg-indigo-600 hover:bg-indigo-500 text-white py-2 md:py-3 rounded-lg font-bold shadow-lg shadow-indigo-900/20 transition transform active:scale-95 text-sm md:text-base"
+                        data-i18n="btnCheck">
                         CHECK SOLUTION
                     </button>
 
                     <button onclick="app.newProblem()"
                         class="w-full bg-emerald-600 hover:bg-emerald-500 text-emerald-50 py-2 rounded-lg font-bold shadow-lg transition text-xs md:text-sm">
-                        <i class="fas fa-sync-alt mr-2"></i> New Problem
+                        <i class="fas fa-sync-alt mr-2"></i> <span data-i18n="btnNew">New Problem</span>
                     </button>
 
                     <div class="grid grid-cols-2 gap-2">
                         <button onclick="app.restartLevel()"
-                            class="bg-slate-700 hover:bg-slate-600 text-slate-200 py-2 rounded text-xs md:text-sm font-medium">Reset
-                            Board</button>
+                            class="bg-slate-700 hover:bg-slate-600 text-slate-200 py-2 rounded text-xs md:text-sm font-medium"
+                            data-i18n="btnReset">Reset Board</button>
                         <button onclick="app.showAnswer()"
-                            class="bg-slate-700 hover:bg-slate-600 text-rose-300 py-2 rounded text-xs md:text-sm font-medium">Give
-                            Up</button>
+                            class="bg-slate-700 hover:bg-slate-600 text-rose-300 py-2 rounded text-xs md:text-sm font-medium"
+                            data-i18n="btnGiveUp">Give Up</button>
                     </div>
 
                     <button onclick="app.showMenu()"
-                        class="w-full text-[10px] md:text-xs text-slate-500 hover:text-slate-300 pt-1">Exit to Main
-                        Menu</button>
+                        class="w-full text-[10px] md:text-xs text-slate-500 hover:text-slate-300 pt-1"
+                        data-i18n="btnExit">Exit to Main Menu</button>
                 </div>
             </div>
         </div>
@@ -315,56 +316,123 @@
 
     <!-- JS LOGIC -->
     <script>
+        /* --- TRANSLATIONS & I18N --- */
+        const translations = {
+            en: {
+                appTitle: "K-Map Master",
+                menuSubtitle: "Main Menu",
+                heroTitle: "Logic Simplified",
+                heroDesc: "Master Boolean Algebra optimization through interactive visualization.",
+                btnCampaign: "Campaign Mode",
+                tagStages: "Stage 1-3",
+                btnPractice: "Practice Mode",
+                configTitle: "Configuration",
+                lblVars: "Number of Variables",
+                lblDontCare: "Allow Don't Cares (X)",
+                btnBack: "Back",
+                btnStart: "Start",
+                lblObj: "Objective",
+                txtObj: 'Group all <span class="text-emerald-400 font-bold">1</span>s. Avoid <span class="text-rose-400 font-bold">0</span>s.',
+                btnHint: "Hint",
+                lblSel: "Sel:",
+                btnAdd: "Add",
+                lblEq: "Boolean Equation",
+                txtEqHelp: "Use ' for NOT (e.g., A'). + for OR.",
+                lblActive: "Active Groups",
+                txtNoGroups: "No groups created yet.",
+                btnCheck: "CHECK SOLUTION",
+                btnNew: "New Problem",
+                btnReset: "Reset Board",
+                btnGiveUp: "Give Up",
+                btnExit: "Exit to Main Menu",
+                // Dynamic
+                stageCampaign: "Campaign - Stage",
+                modePractice: "Practice Mode",
+                groupLabel: "Group",
+                cells: "cells",
+                // Modals
+                mInvalidGroup: "Invalid Group",
+                mInvalidGroupMsg: "Selection must be a power of 2 (1, 2, 4, 8...) and form a rectangular block (including wraps).",
+                mInvalidContent: "Invalid Content",
+                mInvalidContentMsg: "Groups cannot contain '0' cells.",
+                mHintTitle: "Hint",
+                mHintMsgTarget: "Focus on the cell at index {i} (Binary: {b}). It needs to be grouped.",
+                mHintMsgCovered: "All 1s are covered. Check if you have groups fully contained inside other groups, or if you can make groups larger.",
+                mSolvedTitle: "Solved",
+                mSolvedMsg: "Here is the optimal grouping. Study the pattern!",
+                mIncompleteTitle: "Incomplete",
+                mIncompleteMsg: "There are still 1s remaining on the map.",
+                mNotOptimalTitle: "Not Optimal",
+                mNotOptimalMsg: "You have {u} groups, but this can be solved with {o}. Look for larger patterns or redundant groups.",
+                mSuccessTitle: "Success!",
+                mSuccessMsg: "Great job! You've simplified the map correctly.",
+                btnNextStage: "Next Stage",
+                btnContinue: "Continue"
+            },
+            zh: {
+                appTitle: "K-Map 大師",
+                menuSubtitle: "主選單",
+                heroTitle: "邏輯簡化",
+                heroDesc: "透過互動視覺化掌握布林代數優化。",
+                btnCampaign: "闖關模式",
+                tagStages: "第 1-3 關",
+                btnPractice: "練習模式",
+                configTitle: "設定",
+                lblVars: "變數數量",
+                lblDontCare: "允許隨意項 (Don't Cares)",
+                btnBack: "返回",
+                btnStart: "開始",
+                lblObj: "目標",
+                txtObj: '圈選所有 <span class="text-emerald-400 font-bold">1</span>，避開 <span class="text-rose-400 font-bold">0</span>。',
+                btnHint: "提示",
+                lblSel: "已選:",
+                btnAdd: "新增",
+                lblEq: "布林方程式",
+                txtEqHelp: "用 ' 代表反相 (如 A')，+ 代表 OR。",
+                lblActive: "目前群組",
+                txtNoGroups: "尚未建立群組。",
+                btnCheck: "檢查答案",
+                btnNew: "新題目",
+                btnReset: "重置版面",
+                btnGiveUp: "顯示答案",
+                btnExit: "回到主選單",
+                // Dynamic
+                stageCampaign: "闖關模式 - 第",
+                modePractice: "練習模式",
+                groupLabel: "群組",
+                cells: "格",
+                // Modals
+                mInvalidGroup: "群組無效",
+                mInvalidGroupMsg: "選取數量必須是 2 的次方 (1, 2, 4, 8...) 且為矩形區塊 (包含跨邊界)。",
+                mInvalidContent: "內容無效",
+                mInvalidContentMsg: "群組不能包含 '0'。",
+                mHintTitle: "提示",
+                mHintMsgTarget: "注意索引為 {i} 的方格 (二進位: {b})。它需要被分組。",
+                mHintMsgCovered: "所有的 1 都已覆蓋。檢查是否有被其他群組包含的冗餘群組，或嘗試擴大群組。",
+                mSolvedTitle: "已解答",
+                mSolvedMsg: "這是最佳的分組方式。請觀察其中的規律！",
+                mIncompleteTitle: "未完成",
+                mIncompleteMsg: "地圖上還有未圈選的 1。",
+                mNotOptimalTitle: "非最佳解",
+                mNotOptimalMsg: "你用了 {u} 個群組，但這可以用 {o} 個群組解決。請尋找更大的樣式或移除多餘群組。",
+                mSuccessTitle: "成功！",
+                mSuccessMsg: "太棒了！你已正確簡化地圖。",
+                btnNextStage: "下一關",
+                btnContinue: "繼續"
+            }
+        };
+
         /* --- LOGIC ENGINE: QUINE-MCCLUSKEY & UTILS --- */
 
         const Utils = {
-            // Convert decimal to binary string padded to n bits
             toBin: (num, vars) => num.toString(2).padStart(vars, '0'),
 
-            // Calculate Hamming distance between two integers
-            hammingDistance: (a, b) => {
-                let x = a ^ b;
-                let setBits = 0;
-                while (x > 0) {
-                    setBits += x & 1;
-                    x >>= 1;
-                }
-                return setBits;
-            },
-
-            // Gray Code Sequences
             grayCodes: {
-                2: ['00', '01', '11', '10'], // AB: 00, 01, 11, 10 (Actually usually A is row, B is col)
-                // Standard layout mapping for K-Map Visuals
-                // 2 Vars: Rows (A: 0,1), Cols (B: 0,1)
-                // 3 Vars: Rows (A: 0,1), Cols (BC: 00, 01, 11, 10)
-                // 4 Vars: Rows (AB: 00,01,11,10), Cols (CD: 00,01,11,10)
+                2: ['00', '01', '11', '10']
             },
 
-            // Get visually adjacent indices in logic space (handling wrap)
-            // This is for hint generation mostly. 
-            getNeighbors: (index, numVars) => {
-                let neighbors = [];
-                for (let i = 0; i < numVars; i++) {
-                    neighbors.push(index ^ (1 << i));
-                }
-                return neighbors;
-            },
-
-            // Check if a set of indices forms a valid power-of-2 subcube
             isValidGroup: (indices, numVars) => {
                 if (![1, 2, 4, 8, 16].includes(indices.length)) return false;
-
-                // Check if all indices share common literals
-                // A group is valid if, for every bit position, the bit is either 
-                // constant for all numbers, or varies perfectly to cover all combinations.
-                // Quine-McCluskey logic:
-                // 1. Take first number.
-                // 2. Calculate XOR diffs with all others.
-                // 3. OR all diffs together to get 'varyMask'.
-                // 4. Check if the count of bits in varyMask is log2(groupSize).
-                // 5. Check if the indices match exactly the pattern generated by varying those bits.
-
                 if (indices.length === 1) return true;
 
                 const base = indices[0];
@@ -373,15 +441,12 @@
                     varyMask |= (base ^ indices[i]);
                 }
 
-                // Count set bits in varyMask
                 let varyingBits = 0;
                 let temp = varyMask;
                 while (temp) { varyingBits += temp & 1; temp >>= 1; }
 
                 if (Math.pow(2, varyingBits) !== indices.length) return false;
 
-                // Verify all permutations exist in the set
-                // We can verify this by checking if every index in the set satisfies (index & ~varyMask) == (base & ~varyMask)
                 const constantMask = ~varyMask & ((1 << numVars) - 1);
                 const constantValue = base & constantMask;
 
@@ -399,14 +464,8 @@
                 this.dontCares = new Set(dontCares);
             }
 
-            // Simplified Solver for N <= 4
-            // Returns list of Essential Prime Implicants as strings of (0, 1, -)
             solve() {
-                // 1. Combine minterms and dontCares
-                let currentGroups = [];
                 let allTerms = [...this.minterms, ...this.dontCares];
-
-                // Initial grouping by number of 1s
                 let groups = Array.from({ length: this.numVars + 1 }, () => []);
                 allTerms.forEach(t => {
                     let bin = Utils.toBin(t, this.numVars);
@@ -415,13 +474,10 @@
                 });
 
                 let primeImplicants = [];
-
-                // Iterative reduction
                 let changed = true;
                 while (changed) {
                     changed = false;
                     let nextGroups = Array.from({ length: this.numVars + 1 }, () => []);
-
                     for (let i = 0; i < groups.length - 1; i++) {
                         for (let t1 of groups[i]) {
                             for (let t2 of groups[i + 1]) {
@@ -431,8 +487,6 @@
                                     t2.checked = true;
                                     let newBin = t1.bin.substring(0, diff.index) + '-' + t1.bin.substring(diff.index + 1);
                                     let newIndices = [...t1.indices, ...t2.indices].sort((a, b) => a - b);
-
-                                    // Avoid duplicates
                                     if (!nextGroups[i].some(x => x.bin === newBin)) {
                                         nextGroups[i].push({ bin: newBin, indices: newIndices, checked: false });
                                         changed = true;
@@ -441,31 +495,18 @@
                             }
                         }
                     }
-
-                    // Collect unchecked terms as Prime Implicants
                     groups.flat().forEach(t => {
-                        if (!t.checked && !primeImplicants.some(p => p.bin === t.bin)) {
-                            primeImplicants.push(t);
-                        }
+                        if (!t.checked && !primeImplicants.some(p => p.bin === t.bin)) primeImplicants.push(t);
                     });
-
                     if (changed) groups = nextGroups;
                 }
-                // Final sweep
                 groups.flat().forEach(t => {
-                    if (!primeImplicants.some(p => p.bin === t.bin)) {
-                        primeImplicants.push(t);
-                    }
+                    if (!primeImplicants.some(p => p.bin === t.bin)) primeImplicants.push(t);
                 });
 
-                // Petrick's Method or Essential Check (Simplified for game: Just greedy cover)
-                // We want to cover only Minterms (not dont cares)
                 let remainingMinterms = [...this.minterms];
                 let essentialPIs = [];
 
-                // Simple Greedy approach for game purposes (Optimal enough for 4 vars)
-                // Sort PIs by size (largest covers first -> fewer dashes means smaller group, more dashes means larger group)
-                // Logic: dashes count. '001-' has 1 dash (size 2). '----' has 4 dashes (size 16).
                 primeImplicants.sort((a, b) => {
                     let dashesA = a.bin.split('-').length;
                     let dashesB = b.bin.split('-').length;
@@ -473,14 +514,12 @@
                 });
 
                 for (let pi of primeImplicants) {
-                    // Does this PI cover any remaining minterms?
                     let covers = pi.indices.filter(idx => remainingMinterms.includes(idx));
                     if (covers.length > 0) {
                         essentialPIs.push(pi);
                         remainingMinterms = remainingMinterms.filter(m => !covers.includes(m));
                     }
                 }
-
                 return essentialPIs;
             }
 
@@ -488,16 +527,12 @@
                 let count = 0;
                 let index = -1;
                 for (let i = 0; i < bin1.length; i++) {
-                    if (bin1[i] !== bin2[i]) {
-                        count++;
-                        index = i;
-                    }
+                    if (bin1[i] !== bin2[i]) { count++; index = i; }
                 }
                 return { count, index };
             }
 
             static binToTerm(bin, vars) {
-                // Convert '0-10' to A'CD'
                 const names = ['A', 'B', 'C', 'D'];
                 let term = "";
                 for (let i = 0; i < vars; i++) {
@@ -511,13 +546,14 @@
         /* --- APP LOGIC --- */
 
         const AppState = {
-            stage: 1, // 1, 2, 3
-            mode: 'menu', // menu, game
+            lang: 'en',
+            stage: 1,
+            mode: 'menu',
             numVars: 2,
             useDontCares: false,
             minterms: new Set(),
             dontCares: new Set(),
-            userGroups: [], // { id, indices: [], color }
+            userGroups: [],
             selectedIndices: new Set(),
             colors: ['bg-red-500', 'bg-blue-500', 'bg-green-500', 'bg-yellow-500', 'bg-purple-500'],
             colorIndex: 0
@@ -525,8 +561,30 @@
 
         const app = {
             init: () => {
-                // Initialization
+                app.setLanguage('en');
                 app.showMenu();
+            },
+
+            /* --- I18N --- */
+            setLanguage: (lang) => {
+                AppState.lang = lang;
+                document.getElementById('lang-selector').value = lang;
+
+                // Update static elements
+                document.querySelectorAll('[data-i18n]').forEach(el => {
+                    const key = el.getAttribute('data-i18n');
+                    if (translations[lang][key]) {
+                        el.innerHTML = translations[lang][key];
+                    }
+                });
+
+                // Refresh dynamic text
+                app.updateStageIndicator();
+                app.renderGroupsList(); // Refresh group list text
+            },
+
+            t: (key) => {
+                return translations[AppState.lang][key] || key;
             },
 
             /* --- NAVIGATION --- */
@@ -534,11 +592,11 @@
                 document.getElementById('view-menu').classList.remove('hidden');
                 document.getElementById('view-setup').classList.add('hidden');
                 document.getElementById('view-game').classList.add('hidden');
-                document.getElementById('stage-indicator').innerText = "Main Menu";
+                app.updateStageIndicator("menuSubtitle");
             },
 
             showSettings: () => {
-                alert("Settings: Sound (On), High Contrast (Off). (Placeholder)");
+                alert("Settings: Sound (On).");
             },
 
             startCampaign: () => {
@@ -565,13 +623,13 @@
 
                 app.generateLevel();
                 app.startGameView();
-                document.getElementById('stage-indicator').innerText = `Campaign - Stage ${stage}`;
+                app.updateStageIndicator();
             },
 
             startCustomSetup: () => {
                 document.getElementById('view-menu').classList.add('hidden');
                 document.getElementById('view-setup').classList.remove('hidden');
-                AppState.numVars = 2; // Default
+                AppState.numVars = 2;
                 app.updateSetupUI();
             },
 
@@ -601,7 +659,7 @@
 
                 app.generateLevel();
                 app.startGameView();
-                document.getElementById('stage-indicator').innerText = `Practice Mode - ${AppState.numVars} Vars`;
+                app.updateStageIndicator();
             },
 
             startGameView: () => {
@@ -612,25 +670,31 @@
                 app.renderGroupsList();
             },
 
-            /* --- GAME LOGIC --- */
+            updateStageIndicator: (forceKey) => {
+                const el = document.getElementById('stage-indicator');
+                if (forceKey) {
+                    el.innerHTML = app.t(forceKey);
+                    return;
+                }
+                if (AppState.mode === 'campaign') {
+                    const prefix = app.t('stageCampaign');
+                    el.innerHTML = prefix.endsWith('Stage') ? `${prefix} ${AppState.stage}` : `${prefix}${AppState.stage}關`;
+                } else {
+                    el.innerHTML = `${app.t('modePractice')} - ${AppState.numVars} Vars`;
+                }
+            },
 
+            /* --- GAME LOGIC --- */
             newProblem: () => {
                 app.generateLevel();
                 app.restartLevel();
-                // Optional: Brief toast or just visual refresh
             },
 
             generateLevel: () => {
-                // Random generation logic
                 const totalCells = Math.pow(2, AppState.numVars);
                 AppState.minterms.clear();
                 AppState.dontCares.clear();
-
-                // Ensure at least one group exists
-                // Heuristic: Pick a random center, and expand
                 let filled = 0;
-
-                // Random fill density between 30% and 60%
                 for (let i = 0; i < totalCells; i++) {
                     const rand = Math.random();
                     if (rand > 0.6) {
@@ -639,8 +703,6 @@
                         AppState.dontCares.add(i);
                     }
                 }
-
-                // Safety: Ensure not empty
                 if (AppState.minterms.size === 0) AppState.minterms.add(0);
             },
 
@@ -654,46 +716,36 @@
             },
 
             /* --- RENDERING --- */
-
             renderGrid: () => {
                 const root = document.getElementById('grid-root');
                 const mapVars = document.getElementById('map-vars');
                 root.innerHTML = '';
 
-                // Config Grid Cols
-                // 2 Vars: 2 cols. 3 Vars: 4 cols. 4 Vars: 4 cols.
                 let cols = AppState.numVars === 2 ? 2 : 4;
                 let rows = AppState.numVars === 4 ? 4 : 2;
 
-                // Responsive Grid Cell Sizing
-                // Mobile: minmax(50px), Desktop: minmax(60px)
                 root.style.gridTemplateColumns = `repeat(${cols}, minmax(50px, 1fr))`;
                 root.style.gridTemplateRows = `repeat(${rows}, minmax(50px, 1fr))`;
 
-                // Labels
                 if (AppState.numVars === 2) mapVars.innerText = "A \\ B";
                 if (AppState.numVars === 3) mapVars.innerText = "A \\ BC";
                 if (AppState.numVars === 4) mapVars.innerText = "AB \\ CD";
 
-                // Create Gray Code Mapping
                 const rowCodes = AppState.numVars === 4 ? Utils.grayCodes[2] : ['0', '1'];
                 const colCodes = AppState.numVars === 2 ? ['0', '1'] : Utils.grayCodes[2];
 
                 for (let r = 0; r < rows; r++) {
                     for (let c = 0; c < cols; c++) {
-                        // Determine logical index
                         let rowBits = rowCodes[r];
                         let colBits = colCodes[c];
                         let binaryStr = rowBits + colBits;
                         let index = parseInt(binaryStr, 2);
 
                         const cell = document.createElement('div');
-                        // Responsive Text Sizes: text-xl on mobile, text-2xl on desktop
                         cell.className = `cell relative bg-slate-700 border border-slate-600 flex items-center justify-center text-xl md:text-2xl font-bold cursor-pointer h-16 md:h-20 select-none touch-manipulation`;
                         cell.dataset.index = index;
                         cell.onclick = () => app.toggleCellSelection(index);
 
-                        // Content
                         let val = '0';
                         let colorClass = 'text-slate-500';
                         if (AppState.minterms.has(index)) {
@@ -706,13 +758,11 @@
 
                         cell.innerHTML = `<span class="${colorClass}">${val}</span>`;
 
-                        // Label (Coordinate)
                         const label = document.createElement('div');
                         label.className = "absolute top-1 left-1 text-[8px] md:text-[10px] text-white font-bold mono opacity-90";
                         label.innerText = binaryStr;
                         cell.appendChild(label);
 
-                        // Selection Highlighting
                         if (AppState.selectedIndices.has(index)) {
                             cell.classList.add('ring-2', 'ring-indigo-400', 'bg-slate-600');
                         }
@@ -720,11 +770,8 @@
                         root.appendChild(cell);
                     }
                 }
-
                 app.updateSelectionCount();
             },
-
-            /* --- INTERACTION --- */
 
             toggleCellSelection: (index) => {
                 if (AppState.selectedIndices.has(index)) {
@@ -732,7 +779,7 @@
                 } else {
                     AppState.selectedIndices.add(index);
                 }
-                app.renderGrid(); // Re-render to show selection border
+                app.renderGrid();
             },
 
             clearSelection: () => {
@@ -749,21 +796,18 @@
             createGroup: () => {
                 const indices = Array.from(AppState.selectedIndices).sort((a, b) => a - b);
 
-                // Validation 1: Power of 2
                 if (!Utils.isValidGroup(indices, AppState.numVars)) {
-                    app.showModal("Invalid Group", "Selection must be a power of 2 (1, 2, 4, 8...) and form a rectangular block (including wraps).", "fa-exclamation-triangle");
+                    app.showModal(app.t('mInvalidGroup'), app.t('mInvalidGroupMsg'), "fa-exclamation-triangle");
                     return;
                 }
 
-                // Validation 2: Content Check (No Zeros)
                 for (let idx of indices) {
                     if (!AppState.minterms.has(idx) && !AppState.dontCares.has(idx)) {
-                        app.showModal("Invalid Content", "Groups cannot contain '0' cells.", "fa-times-circle");
+                        app.showModal(app.t('mInvalidContent'), app.t('mInvalidContentMsg'), "fa-times-circle");
                         return;
                     }
                 }
 
-                // Add Group
                 const color = AppState.colors[AppState.colorIndex % AppState.colors.length];
                 AppState.colorIndex++;
 
@@ -790,21 +834,17 @@
                 container.innerHTML = '';
 
                 if (AppState.userGroups.length === 0) {
-                    container.innerHTML = '<div class="text-sm text-slate-500 italic text-center py-4">No active groups.</div>';
+                    container.innerHTML = `<div class="text-xs md:text-sm text-slate-500 italic text-center py-4">${app.t('txtNoGroups')}</div>`;
                     return;
                 }
 
                 AppState.userGroups.forEach((g, i) => {
                     const div = document.createElement('div');
                     div.className = "flex items-center justify-between bg-slate-900 p-2 rounded border border-slate-700";
-
-                    // Color dot
-                    const dot = `<div class="w-3 h-3 rounded-full ${g.color.replace('bg-', 'bg-')} mr-2"></div>`;
-
                     div.innerHTML = `
                         <div class="flex items-center">
                             <div class="w-3 h-3 rounded-full ${g.color} mr-3"></div>
-                            <span class="text-sm font-mono text-slate-300">Group ${i + 1} (${g.indices.length} cells)</span>
+                            <span class="text-sm font-mono text-slate-300">${app.t('groupLabel')} ${i + 1} (${g.indices.length} ${app.t('cells')})</span>
                         </div>
                         <button onclick="app.removeGroup(${g.id})" class="text-slate-500 hover:text-rose-500"><i class="fas fa-trash"></i></button>
                     `;
@@ -812,73 +852,47 @@
                 });
             },
 
-            // Draw SVG overlays for groups
             renderGroupsOverlay: () => {
-                // This is complex in HTML Grid. 
-                // Simplification: We will just highlight the cells in the grid with colored borders/backgrounds 
-                // corresponding to the groups. Since SVGs over CSS Grid is hard to align perfectly without fixed pixels.
-
-                // Alternative: Re-render grid cells with background colors mixed.
-                // Let's update renderGrid to handle group highlighting.
-
-                // Re-calling renderGrid is inefficient but safe. 
-                // Let's modify the cells directly.
                 const cells = document.querySelectorAll('.cell');
                 cells.forEach(c => {
-                    // Reset style except selection
-                    // Keep base styles
                     const idx = parseInt(c.dataset.index);
-
-                    // Find groups containing this index
                     const groups = AppState.userGroups.filter(g => g.indices.includes(idx));
 
                     if (groups.length > 0) {
-                        // Apply color overlay
-                        // If multiple, blend? Just take last one.
                         const colorClass = groups[groups.length - 1].color;
-                        // Tailwind colors map to hex for opacity
                         const hexMap = {
                             'bg-red-500': 'rgba(239, 68, 68, 0.4)', 'bg-blue-500': 'rgba(59, 130, 246, 0.4)',
                             'bg-green-500': 'rgba(34, 197, 94, 0.4)', 'bg-yellow-500': 'rgba(234, 179, 8, 0.4)',
                             'bg-purple-500': 'rgba(168, 85, 247, 0.4)'
                         };
-
                         c.style.backgroundColor = hexMap[colorClass] || 'rgba(255,255,255,0.2)';
                         c.style.borderColor = "white";
                     } else {
-                        c.style.backgroundColor = ""; // Revert to CSS class default
+                        c.style.backgroundColor = "";
                         c.style.borderColor = "";
                     }
                 });
             },
 
             /* --- VALIDATION & HINTS --- */
-
             toggleHint: () => {
-                // Find a 1 that isn't covered by user groups
                 const covered = new Set();
                 AppState.userGroups.forEach(g => g.indices.forEach(i => covered.add(i)));
-
                 const uncovered = [...AppState.minterms].filter(m => !covered.has(m));
 
                 if (uncovered.length > 0) {
                     const target = uncovered[0];
-                    app.showModal("Hint", `Focus on the cell at index ${target} (Binary: ${Utils.toBin(target, AppState.numVars)}). It needs to be grouped.`, "fa-lightbulb");
+                    const msg = app.t('mHintMsgTarget').replace('{i}', target).replace('{b}', Utils.toBin(target, AppState.numVars));
+                    app.showModal(app.t('mHintTitle'), msg, "fa-lightbulb");
                 } else {
-                    // All covered? Check redundancy.
-                    app.showModal("Hint", "All 1s are covered. Check if you have groups fully contained inside other groups, or if you can make groups larger.", "fa-check-circle");
+                    app.showModal(app.t('mHintTitle'), app.t('mHintMsgCovered'), "fa-check-circle");
                 }
             },
 
             showAnswer: () => {
-                // Solve
                 const solver = new Solver(AppState.numVars, AppState.minterms, AppState.dontCares);
-                const solution = solver.solve(); // Array of {bin, indices}
-
-                // Clear user groups
+                const solution = solver.solve();
                 AppState.userGroups = [];
-
-                // Add solution groups
                 solution.forEach((sol, i) => {
                     AppState.userGroups.push({
                         id: Date.now() + i,
@@ -891,58 +905,40 @@
                 app.renderGroupsList();
                 app.renderGroupsOverlay();
 
-                // Generate Text Equation
                 let eqParts = solution.map(s => Solver.binToTerm(s.bin, AppState.numVars));
                 document.getElementById('equation-input').value = eqParts.join(' + ');
 
-                app.showModal("Solved", "Here is the optimal grouping. Study the pattern!", "fa-graduation-cap");
+                app.showModal(app.t('mSolvedTitle'), app.t('mSolvedMsg'), "fa-graduation-cap");
             },
 
             checkSolution: () => {
-                // 1. Completeness Check
                 const covered = new Set();
                 AppState.userGroups.forEach(g => g.indices.forEach(i => covered.add(i)));
-
                 const missing = [...AppState.minterms].filter(m => !covered.has(m));
+
                 if (missing.length > 0) {
-                    app.showModal("Incomplete", "There are still 1s remaining on the map.", "fa-times-circle");
+                    app.showModal(app.t('mIncompleteTitle'), app.t('mIncompleteMsg'), "fa-times-circle");
                     return;
                 }
 
-                // 2. Redundancy/Optimality Check via Solver
                 const solver = new Solver(AppState.numVars, AppState.minterms, AppState.dontCares);
                 const optimalPIs = solver.solve();
 
-                // Basic Check: Is User Group Count <= Optimal Count?
-                // This isn't perfect (multiple solutions exist), but good for learning.
-                // Better: Check if User Logic is Equivalent AND minimal number of terms.
-
                 if (AppState.userGroups.length > optimalPIs.length) {
-                    app.showModal("Not Optimal", `You have ${AppState.userGroups.length} groups, but this can be solved with ${optimalPIs.length}. Look for larger patterns or redundant groups.`, "fa-compress-arrows-alt");
+                    const msg = app.t('mNotOptimalMsg').replace('{u}', AppState.userGroups.length).replace('{o}', optimalPIs.length);
+                    app.showModal(app.t('mNotOptimalTitle'), msg, "fa-compress-arrows-alt");
                     return;
                 }
 
-                // 3. Equation Check (Optional if field is not empty)
-                const userEq = document.getElementById('equation-input').value.trim();
-                if (userEq) {
-                    // Very basic validation: check if non-empty. 
-                    // Parsing Boolean algebra is complex for a single file without eval()
-                    // We'll assume if groups are correct, allow pass, but warn if empty.
-                } else {
-                    // If equation is empty, prompt? No, allow visual solve only.
-                }
-
-                // Success!
-                app.showModal("Success!", "Great job! You've simplified the map correctly.", "fa-trophy");
+                app.showModal(app.t('mSuccessTitle'), app.t('mSuccessMsg'), "fa-trophy");
 
                 if (AppState.mode === 'campaign' && AppState.stage < 3) {
-                    // Update modal button to say Next Stage
                     const btn = document.getElementById('modal-btn');
                     btn.onclick = () => {
                         app.closeModal();
                         app.loadStage(AppState.stage + 1);
                     };
-                    btn.innerText = "Next Stage";
+                    btn.innerText = app.t('btnNextStage');
                 }
             },
 
@@ -953,9 +949,8 @@
                 document.getElementById('modal-icon').innerHTML = `<i class="fas ${icon} text-indigo-400"></i>`;
                 document.getElementById('modal-feedback').classList.remove('hidden');
 
-                // Reset button default
                 const btn = document.getElementById('modal-btn');
-                btn.innerText = "Continue";
+                btn.innerText = app.t('btnContinue');
                 btn.onclick = app.closeModal;
             },
 
@@ -964,7 +959,6 @@
             }
         };
 
-        // Init
         window.onload = app.init;
 
     </script>
